@@ -49,11 +49,11 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
 const FLOORS = [['BS','Basement','1FRwocCvsbmbrDNsMu9zjLxsnW1_ytK_g'],['GF','Ground','19-QAeWzzslyAedkbvJ2qfQUskPT1PcYT'],
   ['F1','1st floor','1rwY937IdNi5cl1HjEyKlftS1ljGxMMR9'],['AT','Attic','1kaY06f8etD8CvhGX5pxZPn55-vZoz_3N'],['ALL','Whole','11YxeXJWj_IVa4CPttApW9ro1emD74lRW']];
 const mv = document.getElementById('mv'), st = document.getElementById('status'), chips = document.getElementById('chips');
-const url = id => `https://drive.usercontent.google.com/download?id=${id}&export=download`;
+const url = c => `m/House_AR_${c}.glb`;
 function pick(i) {
   const [c, , id] = FLOORS[i];
   chips.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
-  st.textContent = `loading House_AR_${c}.glb…`; mv.src = url(id);
+  st.textContent = `loading House_AR_${c}.glb…`; mv.src = url(c);
   try { history.replaceState(null, '', '#' + c); } catch (e) {}
 }
 FLOORS.forEach(([c, n], i) => { const b = document.createElement('button'); b.textContent = n; b.onclick = () => pick(i); chips.appendChild(b); });
