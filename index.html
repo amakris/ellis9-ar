@@ -33,7 +33,11 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
     <p class="sub">Shell with MVHR and fan coils, 1:1. Pick a floor, wait for the 3D view, then tap "View in AR".</p>
   </header>
   <div class="chips" id="chips"></div>
-  <model-viewer id="mv" camera-controls ar ar-modes="webxr scene-viewer" ar-scale="fixed" ar-placement="floor" shadow-intensity="0.6" exposure="1">
+  <div class="chips">
+    <button id="open" aria-pressed="false">Ceiling off</button>
+    <button id="free" aria-pressed="false">Free size in AR</button>
+  </div>
+  <model-viewer id="mv" camera-controls min-camera-orbit="auto 0deg 0.5m" max-camera-orbit="auto 180deg auto" min-field-of-view="20deg" ar ar-modes="webxr scene-viewer" ar-scale="fixed" ar-placement="floor" shadow-intensity="0.6" exposure="1">
     <button slot="ar-button" id="ar">View in AR</button>
   </model-viewer>
   <p id="status">loading…</p>
@@ -43,14 +47,21 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
     <li>Drag / twist until the pole sits on that corner, the <span class="red">red bar</span> along the column's S face (east) and the <span class="blue">blue bar</span> along its W face (north).</li>
     <li>Expect 10–30 cm drift; re-align on each floor.</li>
   </ol>
-  <p class="note">Needs Chrome on Android with "Google Play Services for AR" installed (Play Store). Open this page in Chrome itself, not inside another app's browser.</p>
+  <p class="note">Off site: "Ceiling off" removes the slab above (look in from above, or drag up close in the 3D view); "Free size in AR" lets you pinch to shrink / enlarge the model. Leave both off on site for the true 1:1 model. Needs Chrome on Android with "Google Play Services for AR" installed (Play Store). Open this page in Chrome itself, not inside another app's browser.</p>
 </main>
 <script>
 const FLOORS = [['BS','Basement','1FRwocCvsbmbrDNsMu9zjLxsnW1_ytK_g'],['GF','Ground','19-QAeWzzslyAedkbvJ2qfQUskPT1PcYT'],
   ['F1','1st floor','1rwY937IdNi5cl1HjEyKlftS1ljGxMMR9'],['AT','Attic','1kaY06f8etD8CvhGX5pxZPn55-vZoz_3N'],['ALL','Whole','11YxeXJWj_IVa4CPttApW9ro1emD74lRW']];
 const mv = document.getElementById('mv'), st = document.getElementById('status'), chips = document.getElementById('chips');
-const url = c => `m/House_AR_${c}.glb`;
+let cur = 1, open = false, free = false;
+try { open = localStorage.getItem('open') === '1'; free = localStorage.getItem('free') === '1'; } catch (e) {}
+const url = c => `m/House_AR_${c}${open && c !== 'ALL' ? '_open' : ''}.glb`;
+const tog = (id, get, set) => { const b = document.getElementById(id);
+  const show = () => b.setAttribute('aria-pressed', get());
+  b.onclick = () => { set(!get()); show(); }; show(); };
+const apply = () => { mv.setAttribute('ar-scale', free ? 'auto' : 'fixed'); };
 function pick(i) {
+  cur = i;
   const [c, , id] = FLOORS[i];
   chips.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
   st.textContent = `loading House_AR_${c}.glb…`; mv.src = url(c);
@@ -60,6 +71,9 @@ FLOORS.forEach(([c, n], i) => { const b = document.createElement('button'); b.te
 mv.addEventListener('load', () => st.textContent = `loaded · AR available: ${mv.canActivateAR ? 'yes' : 'no (ARCore / Chrome needed)'}`);
 mv.addEventListener('error', e => st.textContent = 'could not load the model: ' + (e.detail?.type || 'error'));
 mv.addEventListener('ar-status', e => st.textContent = 'AR: ' + e.detail.status);
+tog('open', () => open, v => { open = v; try { localStorage.setItem('open', v ? '1' : '0'); } catch (e) {} pick(cur); });
+tog('free', () => free, v => { free = v; try { localStorage.setItem('free', v ? '1' : '0'); } catch (e) {} apply(); });
+apply();
 const k = FLOORS.findIndex(f => f[0] === location.hash.slice(1)); pick(k < 0 ? 1 : k);
 </script>
 </body>
