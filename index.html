@@ -52,9 +52,9 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
 </main>
 <script>
 // landing viewpoints (model frame, metres: x = E of the anchor column, y = up from that floor's bare slab, z = -(N of the anchor)),
-// eye 1.60 m above the finished floor; theta = where the camera sits around the eye (-90deg: looks E, 180deg: looks S)
-const FLOORS = [['BS','Basement',[9.58,1.75,-5.26],'180deg'],['GF','Ground',[4.18,1.72,-5.26],'-90deg'],
-  ['F1','1st floor',[4.18,1.72,-5.26],'-90deg'],['AT','Attic',[4.18,1.83,-5.26],'-90deg'],['ALL','Whole',null,null]];
+// eye 1.60 m above the finished floor; theta = where the camera sits around the eye (180deg: looks S into the floor)
+const FLOORS = [['BS','Basement',[9.58,1.75,-5.26],'180deg'],['GF','Ground',[4.18,1.72,-5.26],'180deg'],
+  ['F1','1st floor',[4.18,1.72,-5.26],'180deg'],['AT','Attic',[4.18,1.83,-5.26],'180deg'],['ALL','Whole',null,null]];
 let landing = true;
 function view() {
   const [, , t, th] = FLOORS[cur];
