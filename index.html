@@ -36,8 +36,9 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
   <div class="chips">
     <button id="open" aria-pressed="false">Ceiling off</button>
     <button id="free" aria-pressed="false">Free size in AR</button>
+    <button id="land" aria-pressed="true">Start at stair landing</button>
   </div>
-  <model-viewer id="mv" camera-controls min-camera-orbit="auto 0deg 0.5m" max-camera-orbit="auto 180deg auto" min-field-of-view="20deg" ar ar-modes="webxr scene-viewer" ar-scale="fixed" ar-placement="floor" shadow-intensity="0.6" exposure="1">
+  <model-viewer id="mv" camera-controls min-camera-orbit="auto 0deg 0.1m" max-camera-orbit="auto 180deg auto" min-field-of-view="20deg" ar ar-modes="webxr scene-viewer" ar-scale="fixed" ar-placement="floor" shadow-intensity="0.6" exposure="1">
     <button slot="ar-button" id="ar">View in AR</button>
   </model-viewer>
   <p id="status">loading…</p>
@@ -47,11 +48,20 @@ ol { display:grid; gap:6px; padding-left:1.2rem; margin:0; }
     <li>Drag / twist until the pole sits on that corner, the <span class="red">red bar</span> along the column's S face (east) and the <span class="blue">blue bar</span> along its W face (north).</li>
     <li>Expect 10–30 cm drift; re-align on each floor.</li>
   </ol>
-  <p class="note">Off site: "Ceiling off" removes the slab above (look in from above, or drag up close in the 3D view); "Free size in AR" lets you pinch to shrink / enlarge the model. Leave both off on site for the true 1:1 model. Needs Chrome on Android with "Google Play Services for AR" installed (Play Store). Open this page in Chrome itself, not inside another app's browser.</p>
+  <p class="note">The 3D view opens standing on the stair landing (top of the stair from below; basement: foot of the stair); drag to look around, pinch out to leave. Off site: "Ceiling off" removes the slab above (look in from above, or drag up close in the 3D view); "Free size in AR" lets you pinch to shrink / enlarge the model. Leave both off on site for the true 1:1 model. Needs Chrome on Android with "Google Play Services for AR" installed (Play Store). Open this page in Chrome itself, not inside another app's browser.</p>
 </main>
 <script>
-const FLOORS = [['BS','Basement','1FRwocCvsbmbrDNsMu9zjLxsnW1_ytK_g'],['GF','Ground','19-QAeWzzslyAedkbvJ2qfQUskPT1PcYT'],
-  ['F1','1st floor','1rwY937IdNi5cl1HjEyKlftS1ljGxMMR9'],['AT','Attic','1kaY06f8etD8CvhGX5pxZPn55-vZoz_3N'],['ALL','Whole','11YxeXJWj_IVa4CPttApW9ro1emD74lRW']];
+// landing viewpoints (model frame, metres: x = E of the anchor column, y = up from that floor's bare slab, z = -(N of the anchor)),
+// eye 1.60 m above the finished floor; theta = where the camera sits around the eye (-90deg: looks E, 180deg: looks S)
+const FLOORS = [['BS','Basement',[9.58,1.75,-5.26],'180deg'],['GF','Ground',[4.18,1.72,-5.26],'-90deg'],
+  ['F1','1st floor',[4.18,1.72,-5.26],'-90deg'],['AT','Attic',[4.18,1.83,-5.26],'-90deg'],['ALL','Whole',null,null]];
+let landing = true;
+function view() {
+  const [, , t, th] = FLOORS[cur];
+  if (landing && t) { mv.cameraTarget = `${t[0]}m ${t[1]}m ${t[2]}m`; mv.cameraOrbit = `${th} 90deg 0.2m`; mv.fieldOfView = '75deg'; }
+  else { mv.cameraTarget = 'auto auto auto'; mv.cameraOrbit = '-30deg 60deg auto'; mv.fieldOfView = 'auto'; }
+  mv.jumpCameraToGoal();
+}
 const mv = document.getElementById('mv'), st = document.getElementById('status'), chips = document.getElementById('chips');
 let cur = 1, open = false, free = false;
 try { open = localStorage.getItem('open') === '1'; free = localStorage.getItem('free') === '1'; } catch (e) {}
@@ -62,17 +72,18 @@ const tog = (id, get, set) => { const b = document.getElementById(id);
 const apply = () => { mv.setAttribute('ar-scale', free ? 'auto' : 'fixed'); };
 function pick(i) {
   cur = i;
-  const [c, , id] = FLOORS[i];
+  const [c] = FLOORS[i];
   chips.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
   st.textContent = `loading House_AR_${c}.glb…`; mv.src = url(c);
   try { history.replaceState(null, '', '#' + c); } catch (e) {}
 }
 FLOORS.forEach(([c, n], i) => { const b = document.createElement('button'); b.textContent = n; b.onclick = () => pick(i); chips.appendChild(b); });
-mv.addEventListener('load', () => st.textContent = `loaded · AR available: ${mv.canActivateAR ? 'yes' : 'no (ARCore / Chrome needed)'}`);
+mv.addEventListener('load', () => { view(); }); mv.addEventListener('load', () => st.textContent = `loaded · AR available: ${mv.canActivateAR ? 'yes' : 'no (ARCore / Chrome needed)'}`);
 mv.addEventListener('error', e => st.textContent = 'could not load the model: ' + (e.detail?.type || 'error'));
 mv.addEventListener('ar-status', e => st.textContent = 'AR: ' + e.detail.status);
 tog('open', () => open, v => { open = v; try { localStorage.setItem('open', v ? '1' : '0'); } catch (e) {} pick(cur); });
 tog('free', () => free, v => { free = v; try { localStorage.setItem('free', v ? '1' : '0'); } catch (e) {} apply(); });
+tog('land', () => landing, v => { landing = v; view(); });
 apply();
 const k = FLOORS.findIndex(f => f[0] === location.hash.slice(1)); pick(k < 0 ? 1 : k);
 </script>
