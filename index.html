@@ -60,7 +60,7 @@ FLOORS.forEach(([c, n], i) => { const b = document.createElement('button'); b.te
 mv.addEventListener('load', () => st.textContent = `loaded · AR available: ${mv.canActivateAR ? 'yes' : 'no (ARCore / Chrome needed)'}`);
 mv.addEventListener('error', e => st.textContent = 'could not load the model: ' + (e.detail?.type || 'error'));
 mv.addEventListener('ar-status', e => st.textContent = 'AR: ' + e.detail.status);
-const h = location.hash.slice(1); pick(Math.max(0, FLOORS.findIndex(f => f[0] === h)) || 1);
+const k = FLOORS.findIndex(f => f[0] === location.hash.slice(1)); pick(k < 0 ? 1 : k);
 </script>
 </body>
 </html>
