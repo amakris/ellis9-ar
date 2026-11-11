@@ -65,7 +65,7 @@ function view() {
 const mv = document.getElementById('mv'), st = document.getElementById('status'), chips = document.getElementById('chips');
 let cur = 1, open = false, free = false;
 try { open = localStorage.getItem('open') === '1'; free = localStorage.getItem('free') === '1'; } catch (e) {}
-const url = c => `m/House_AR_${c}${open && c !== 'ALL' ? '_open' : ''}.glb`;
+const url = c => `m/HouseEM_AR_${c}${open && c !== 'ALL' ? '_open' : ''}.glb`;
 const tog = (id, get, set) => { const b = document.getElementById(id);
   const show = () => b.setAttribute('aria-pressed', get());
   b.onclick = () => { set(!get()); show(); }; show(); };
@@ -74,7 +74,7 @@ function pick(i) {
   cur = i;
   const [c] = FLOORS[i];
   chips.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
-  st.textContent = `loading House_AR_${c}.glb…`; mv.src = url(c);
+  st.textContent = `loading HouseEM_AR_${c}.glb…`; mv.src = url(c);
   try { history.replaceState(null, '', '#' + c); } catch (e) {}
 }
 FLOORS.forEach(([c, n], i) => { const b = document.createElement('button'); b.textContent = n; b.onclick = () => pick(i); chips.appendChild(b); });
